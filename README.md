@@ -9,7 +9,7 @@ Welcome to the Collaboration Platform for Product Managers and Data Scientists! 
 This platform consists of two primary modules:
 
 ### 1. Requirement Submission Module for Product Managers
-![Image 1 Description](images/MockAIVerification_Success.png)
+![Product Manager view](images/MockAIVerification_Success.png)
 
 This module provides a structured interface for product managers to define project requirements and goals clearly.
 
@@ -18,6 +18,7 @@ This module provides a structured interface for product managers to define proje
 - **Real-time Feedback**: An AI assistant analyzes input in real-time and provides suggestions to ensure clarity.
 
 ### 2. Planning and Analysis Module for Data Scientists
+![Data Scientist view](images/DSEngagement.png)
 
 Once data scientists receive the requirements, they can use this module to plan and analyze projects.
 
@@ -42,12 +43,12 @@ Once data scientists receive the requirements, they can use this module to plan 
 
 ### For Product Managers
 
-- Go to the "Requirement Submission" page and fill out the required information as prompted.
+- Go to the "Define Your Problem" page and fill out the required information as prompted.
 - After submitting, track the progress of the requirement through the interface.
 
 ### For Data Scientists
 
-- Access the "Requirement Reception" page to view the submitted requirements.
+- Access the "Process Requests" page to view the submitted requirements.
 - Plan your tasks with AI assistance and choose tools to start your analysis.
 - Submit analysis results or feedback on the requirements.
 
@@ -57,7 +58,7 @@ Once data scientists receive the requirements, they can use this module to plan 
 - **Backend**: Node.js, Express
 - **Database**: PostgreSQL
 - **AI Support**: OpenAI GPT API
-- **Deployment**: Docker, AWS
+- **Deployment**: Docker, Azure
 
 ## Development and Contributions
 
@@ -65,7 +66,7 @@ We welcome community contributions!
 
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/joycegu0919/ProductManagerDataScientistCollaboration.git
    ```
 2. Install dependencies:
    ```bash
