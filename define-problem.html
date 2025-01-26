@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Define Your Problem</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1 class="logo">DataBridge</h1>
+      <nav>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section id="define-problem">
+      <div class="container narrow-container">
+        <h2>Define Your Problem</h2>
+        <p>Use the guided steps below to clearly articulate your business problem:</p><br>
+        <div class="form-container">
+          <form id="problem-form" onsubmit="handleSubmit(event)">
+            <label for="business-goal"><strong>What is your business goal and data scope?</strong></label>
+            <small class="scope-hint">Include your business objective and the relevant data dimensions (time range, geographic scope, user segments, etc.)</small>
+            <textarea id="business-goal" name="business-goal" rows="6" 
+              placeholder="Example: Increase customer retention by analyzing usage patterns for paid customers over the last 12 months..."></textarea><br>
+            
+            <label for="files"><strong>Do you have any supporting files?</strong></label>
+            <small class="hint">Upload any relevant scoping documents, or presentations that might help us understand your requirements better</small>
+            <input type="file" id="files" name="files" multiple><br><br>
+              
+            <label for="expected-output"><strong>What is your expected output?</strong></label>
+            <small class="scope-hint">Are you looking for actionable insights or just presenting the data?</small>
+            <select id="expected-output" name="expected-output">
+              <option value="Actionable Insights">Actionable Insights</option>
+              <option value="Visualization">Quick Numbers</option>
+              <option value="Visualization">PBI Dashboard</option>
+              <option value="Report">Word Report</option>
+              <option value="Presentation">PowerPoint Presentation</option>
+              <option value="Prediction">Model Prototype</option>
+            </select><br>
+            
+            <label for="deadline"><strong>When do you want to see the result by?</strong></label>
+            <input type="date" id="deadline" name="deadline" min="2024-01-01"><br>
+            <small class="hint">Please allow at least 2 weeks for data analysis and validation</small><br>
+            
+            <div class="button-group">
+              <button type="button" id="verify-button" onclick="verifyInput()">Verify Requirements</button>
+              <button type="submit" id="submit-button" disabled>Submit</button>
+            </div>
+          </form>
+
+          <div id="ai-feedback" class="feedback-container" style="display: none;">
+            <h3>AI Feedback</h3>
+            <div id="feedback-content"></div>
+            <div id="clarifying-questions"></div>
+          </div>
+        </div>
+
+        <script>
+          // Generate a unique ID for each request
+          function generateRequestId() {
+            return 'REQ-' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+          }
+
+          // Handle form submission
+          async function handleSubmit(event) {
+            event.preventDefault();
+            
+            const formData = {
+              id: generateRequestId(),
+              businessGoal: document.getElementById('business-goal').value,
+              expectedOutput: document.getElementById('expected-output').value,
+              deadline: document.getElementById('deadline').value,
+              status: 'Pending Review',
+              submittedDate: new Date().toISOString(),
+              files: Array.from(document.getElementById('files').files).map(file => file.name)
+            };
+
+            // Get existing requests or initialize empty array
+            const existingRequests = JSON.parse(localStorage.getItem('dataRequests')) || [];
+            
+            // Add new request to array
+            existingRequests.push(formData);
+            
+            // Save updated array back to localStorage
+            localStorage.setItem('dataRequests', JSON.stringify(existingRequests));
+
+            // Show success message
+            showSubmissionSuccess();
+          }
+
+          function showSubmissionSuccess() {
+            const form = document.getElementById('problem-form');
+            form.innerHTML = `
+              <div class="success-message">
+                <h3>✓ Request Submitted Successfully</h3>
+                <p>Your request has been recorded and is pending review.</p>
+                <div class="button-group" style="margin-top: 20px;">
+                  <a href="track-progress.html" class="action-btn">View All Requests</a>
+                  <button onclick="location.reload()" class="secondary-btn">Submit Another Request</button>
+                </div>
+              </div>
+            `;
+          }
+
+          async function verifyInput() {
+            const businessGoal = document.getElementById('business-goal').value;
+            const expectedOutput = document.getElementById('expected-output').value;
+            const deadline = document.getElementById('deadline').value;
+            
+            // Show loading state
+            document.getElementById('verify-button').textContent = 'Analyzing...';
+            
+            try {
+              // Here you would make an API call to your AI service
+              // This is a mock response for demonstration
+              const response = await mockAIVerification(businessGoal, expectedOutput, deadline);
+              
+              // Display feedback
+              const feedbackContainer = document.getElementById('ai-feedback');
+              const feedbackContent = document.getElementById('feedback-content');
+              const clarifyingQuestions = document.getElementById('clarifying-questions');
+              
+              feedbackContainer.style.display = 'block';
+              feedbackContent.innerHTML = `<p>${response.feedback}</p>`;
+              
+              if (response.questions.length > 0) {
+                clarifyingQuestions.innerHTML = `
+                  <h4>Please clarify the following:</h4>
+                  <ul>
+                    ${response.questions.map(q => `<li>${q}</li>`).join('')}
+                  </ul>
+                `;
+              }
+              
+              // Enable submit button if verification passes
+              document.getElementById('submit-button').disabled = !response.isComplete;
+              
+            } catch (error) {
+              console.error('Verification failed:', error);
+            } finally {
+              document.getElementById('verify-button').textContent = 'Verify Requirements';
+            }
+          }
+
+          // Mock AI verification function (replace with actual API call)
+          async function mockAIVerification(businessGoal, expectedOutput, deadline) {
+            // Simulate API delay
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            const response = {
+              feedback: '',
+              questions: [],
+              isComplete: false
+            };
+
+            if (!businessGoal.trim()) {
+              response.feedback = 'Please provide more details about your business goal.';
+              response.questions.push('What specific metrics are you trying to improve?');
+              response.questions.push('What is the time frame for your analysis?');
+              return response;
+            }
+
+            if (businessGoal.length < 50) {
+              response.feedback = 'Your business goal could use more detail.';
+              response.questions.push('Can you specify the target audience or user segment?');
+              response.questions.push('What are the key metrics you want to track?');
+              return response;
+            }
+
+            response.feedback = 'Your requirements look good! We have enough information to proceed.';
+            response.isComplete = true;
+            return response;
+          }
+        </script>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+  </footer>
+</body>
+</html>

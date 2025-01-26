@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - DataBridge</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1 class="logo">DataBridge</h1>
+    </div>
+  </header>
+
+  <main>
+    <section id="login">
+      <div class="container narrow-container">
+        <div class="login-container">
+          <h2>Login</h2>
+          <form id="login-form" onsubmit="handleLogin(event)">
+            <div class="form-group">
+              <label for="username">Email</label>
+              <input type="email" id="username" required placeholder="email@databridge.com">
+            </div>
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input type="password" id="password" required placeholder="Enter password">
+            </div>
+            <button type="submit" class="primary-btn">Login</button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Dummy user credentials
+    const users = {
+      'pm1@databridge.com': {
+        password: 'pm123',
+        role: 'pm',
+        username: 'Sarah (PM)'
+      },
+      'ds1@databridge.com': {
+        password: 'ds123',
+        role: 'ds',
+        username: 'Joyce (DS)'
+      }
+    };
+
+    // Check if user is already logged in
+    document.addEventListener('DOMContentLoaded', function() {
+      const userRole = localStorage.getItem('userRole');
+      if (userRole) {
+        window.location.href = 'index.html';
+      }
+
+      // Add helper text for demo credentials
+      const loginForm = document.querySelector('.login-container');
+      const credentialsHint = document.createElement('div');
+      credentialsHint.className = 'credentials-hint';
+      credentialsHint.innerHTML = `
+        <p><strong>Demo Credentials:</strong></p>
+        <p>PM Login: pm1@databridge.com / pm123</p>
+        <p>DS Login: ds1@databridge.com / ds123</p>
+      `;
+      loginForm.insertBefore(credentialsHint, document.getElementById('login-form'));
+    });
+
+    function handleLogin(event) {
+      event.preventDefault();
+      
+      const email = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      // Check if user exists and password matches
+      const user = users[email];
+      if (!user || user.password !== password) {
+        alert('Invalid email or password');
+        return;
+      }
+
+      // Store user information
+      localStorage.setItem('userRole', user.role);
+      localStorage.setItem('username', user.username);
+      
+      window.location.href = 'index.html';
+    }
+  </script>
+</body>
+</html> 

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Collaboration Tool</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <script>
+    // Check if user is logged in
+    document.addEventListener('DOMContentLoaded', function() {
+      const userRole = localStorage.getItem('userRole');
+      if (!userRole) {
+        window.location.href = 'login.html';
+      }
+      
+      // Update features based on user role
+      if (userRole === 'ds') {
+        const featuresContainer = document.querySelector('#features .container');
+        featuresContainer.innerHTML = `
+          <div class="feature">
+            <a href="track-progress.html">
+              <h3>Process Requests</h3>
+              <p>View and process incoming data analysis requests.</p>
+            </a>
+          </div>
+          <div class="feature">
+            <a href="#">
+              <h3>Enhance Data Knowledge</h3>
+              <p>Access and contribute to our data documentation and best practices.</p>
+            </a>
+          </div>
+        `;
+
+        // Update hero section for DS
+        document.querySelector('#hero h2').textContent = 'Data Science Workspace';
+        document.querySelector('#hero p').textContent = 'Process requests and share knowledge efficiently.';
+        document.querySelector('#hero .cta-btn').textContent = 'View Requests';
+        document.querySelector('#hero .cta-btn').onclick = function() {
+          window.location.href = 'track-progress.html';
+        };
+      }
+    });
+
+    // Add logout function
+    function logout() {
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('username');
+      window.location.href = 'login.html';
+    }
+  </script>
+
+  <header>
+    <div class="container">
+      <h1 class="logo">DataBridge</h1>
+      <nav>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><span id="username-display"></span></li>
+          <li><a href="#" onclick="logout()">Logout</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section id="hero">
+      <div class="container">
+        <h2>Empowering Collaboration Between PMs and Data Scientists</h2>
+        <p>Simplify communication and drive results through structured problem definitions.</p>
+        <button class="cta-btn">Get Started</button>
+      </div>
+    </section>
+
+    <section id="features">
+      <div class="container">
+        <a href="define-problem.html" class="feature">
+          <div>
+            <h3>Define Your Problem</h3>
+            <p>Step-by-step guidance to structure your business questions.</p>
+          </div>
+        </a>
+        <div class="feature">
+          <a href="track-progress.html">
+            <h3>Track Progress</h3>
+            <p>Monitor your data requests and track analysis progress.</p>
+          </a>
+        </div>
+        <div class="feature">
+          <h3>Explore Case Studies</h3>
+          <p>Learn from examples of successful data-driven projects.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+  </footer>
+
+  <script>
+    // Display username
+    document.getElementById('username-display').textContent = 
+      localStorage.getItem('username');
+  </script>
+</body>
+</html>

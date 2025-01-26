@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Process Request - DataBridge</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1 class="logo">DataBridge</h1>
+      <nav>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="track-progress.html">Back to Requests</a></li>
+          <li><span id="username-display"></span></li>
+          <li><a href="#" onclick="logout()">Logout</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section id="process-request">
+      <div class="container narrow-container">
+        <div class="request-details">
+          <h2>Process Request: <span id="request-id"></span></h2>
+          <div class="request-info">
+            <div class="info-group">
+              <label>Business Goal:</label>
+              <p id="business-goal"></p>
+            </div>
+            <div class="info-group">
+              <label>Expected Output:</label>
+              <p id="expected-output"></p>
+            </div>
+            <div class="info-group">
+              <label>Deadline:</label>
+              <p id="deadline"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-container">
+          <div class="chat-messages" id="chat-messages">
+            <!-- Messages will be dynamically added here -->
+          </div>
+          <div class="chat-input">
+            <textarea id="user-input" placeholder="Ask AI about data requirements, statistical methods, or discuss the analysis plan..."></textarea>
+            <button onclick="sendMessage()" class="primary-btn">Send</button>
+          </div>
+        </div>
+
+        <div class="action-panel">
+          <h3>Analysis Plan</h3>
+          <div id="analysis-plan" class="plan-content">
+            <!-- Analysis plan will be generated here -->
+          </div>
+          <div class="button-group">
+            <button onclick="generatePlan()" class="primary-btn">Generate Plan</button>
+            <button onclick="saveAndExit()" class="secondary-btn">Save & Exit</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    let currentRequest = null;
+
+    // Check authentication and role
+    document.addEventListener('DOMContentLoaded', function() {
+      const userRole = localStorage.getItem('userRole');
+      if (!userRole || userRole !== 'ds') {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // Display username
+      document.getElementById('username-display').textContent = 
+        localStorage.getItem('username');
+
+      // Load request details
+      loadRequest();
+      
+      // Add initial AI message
+      addMessage('ai', 'Hello! I can help you plan the data analysis for this request. Would you like to discuss the data requirements or statistical methods first?');
+    });
+
+    function loadRequest() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const requestId = urlParams.get('id');
+      
+      const requests = JSON.parse(localStorage.getItem('dataRequests')) || [];
+      currentRequest = requests.find(r => r.id === requestId);
+      
+      if (!currentRequest) {
+        window.location.href = 'track-progress.html';
+        return;
+      }
+
+      // Display request details
+      document.getElementById('request-id').textContent = currentRequest.id;
+      document.getElementById('business-goal').textContent = currentRequest.businessGoal;
+      document.getElementById('expected-output').textContent = currentRequest.expectedOutput;
+      document.getElementById('deadline').textContent = formatDate(currentRequest.deadline);
+    }
+
+    function addMessage(sender, text) {
+      const messagesDiv = document.getElementById('chat-messages');
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${sender}-message`;
+      messageDiv.innerHTML = `
+        <div class="message-content">
+          <span class="sender">${sender === 'ai' ? 'AI Assistant' : 'You'}</span>
+          <p>${text}</p>
+        </div>
+      `;
+      messagesDiv.appendChild(messageDiv);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('user-input');
+      const message = input.value.trim();
+      if (!message) return;
+
+      // Add user message
+      addMessage('user', message);
+      input.value = '';
+
+      // Simulate AI response (replace with actual AI API call)
+      const aiResponse = await mockAIResponse(message);
+      addMessage('ai', aiResponse);
+    }
+
+    async function mockAIResponse(message) {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Simple response logic (replace with actual AI integration)
+      if (message.toLowerCase().includes('data')) {
+        return 'Based on the business goal, we might need historical customer data including: purchase history, customer demographics, and engagement metrics. Would you like me to elaborate on any specific data requirements?';
+      } else if (message.toLowerCase().includes('statistical')) {
+        return 'For this analysis, we could use regression analysis to identify patterns and predictive modeling to forecast customer behavior. We should also consider A/B testing for validation. Would you like more details about any of these methods?';
+      } else {
+        return 'I understand. Would you like to discuss the data requirements, statistical methods, or something else specific to this analysis?';
+      }
+    }
+
+    function generatePlan() {
+      const planDiv = document.getElementById('analysis-plan');
+      planDiv.innerHTML = `
+        <h4>Data Requirements:</h4>
+        <ul>
+          <li>Customer transaction history (last 12 months)</li>
+          <li>Customer demographics</li>
+          <li>Engagement metrics</li>
+        </ul>
+        <h4>Analysis Methods:</h4>
+        <ul>
+          <li>Exploratory Data Analysis</li>
+          <li>Regression Analysis</li>
+          <li>Predictive Modeling</li>
+        </ul>
+        <h4>Timeline:</h4>
+        <ul>
+          <li>Data Collection: 3 days</li>
+          <li>Data Cleaning: 2 days</li>
+          <li>Analysis: 5 days</li>
+          <li>Validation: 2 days</li>
+          <li>Documentation: 3 days</li>
+        </ul>
+      `;
+    }
+
+    function saveAndExit() {
+      window.location.href = 'track-progress.html';
+    }
+
+    function formatDate(dateString) {
+      const options = { year: 'numeric', month: 'short', day: 'numeric' };
+      return new Date(dateString).toLocaleDateString(undefined, options);
+    }
+  </script>
+</body>
+</html> 

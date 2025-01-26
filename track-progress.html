@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Track Progress - DataBridge</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1 class="logo">DataBridge</h1>
+      <nav>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section id="track-progress">
+      <div class="container narrow-container">
+        <h2>Track Your Requests</h2>
+        <div class="requests-container">
+          <div class="filters">
+            <select id="status-filter">
+              <option value="all">All Statuses</option>
+              <option value="pending">Pending Review</option>
+              <option value="in-progress">In Progress</option>
+              <option value="completed">Completed</option>
+            </select>
+            <select id="deadline-filter">
+              <option value="all">All Deadlines</option>
+              <option value="week">Next 7 Days</option>
+              <option value="month">Next 30 Days</option>
+              <option value="overdue">Overdue</option>
+            </select>
+            <input type="text" id="search" placeholder="Search requests...">
+          </div>
+
+          <table class="requests-table">
+            <thead>
+              <tr>
+                <th>Request ID</th>
+                <th>Business Goal</th>
+                <th>Expected Output</th>
+                <th>Deadline</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="requests-list">
+              <!-- Requests will be dynamically populated here -->
+            </tbody>
+          </table>
+
+          <!-- Process Request Modal -->
+          <div id="process-modal" class="modal" style="display: none;">
+            <div class="modal-content">
+              <span class="close" onclick="closeProcessModal()">&times;</span>
+              <h3>Process Request</h3>
+              <div class="process-form">
+                <div class="form-group">
+                  <label>Current Status:</label>
+                  <select id="process-status">
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Add Comment:</label>
+                  <textarea id="process-comment" rows="4" placeholder="Add your analysis notes or questions..."></textarea>
+                </div>
+                <div class="form-group">
+                  <label>Attach Results:</label>
+                  <input type="file" id="process-attachment" multiple>
+                </div>
+                <div class="button-group">
+                  <button onclick="saveProcess()" class="primary-btn">Save Changes</button>
+                  <button onclick="closeProcessModal()" class="secondary-btn">Cancel</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    let currentRequestId = null;
+
+    // Check authentication
+    document.addEventListener('DOMContentLoaded', function() {
+      const userRole = localStorage.getItem('userRole');
+      if (!userRole) {
+        window.location.href = 'login.html';
+      }
+      loadRequests();
+    });
+
+    // Function to load and filter requests
+    function loadRequests() {
+      const requests = JSON.parse(localStorage.getItem('dataRequests')) || [];
+      const statusFilter = document.getElementById('status-filter').value;
+      const deadlineFilter = document.getElementById('deadline-filter').value;
+      const searchQuery = document.getElementById('search').value.toLowerCase();
+      
+      // Apply filters
+      const filteredRequests = requests.filter(request => {
+        const matchesStatus = statusFilter === 'all' || request.status.toLowerCase().includes(statusFilter);
+        const matchesSearch = request.businessGoal.toLowerCase().includes(searchQuery);
+        const matchesDeadline = filterByDeadline(request.deadline, deadlineFilter);
+        
+        return matchesStatus && matchesSearch && matchesDeadline;
+      });
+
+      displayRequests(filteredRequests);
+    }
+
+    // Helper function to filter by deadline
+    function filterByDeadline(deadline, filter) {
+      if (filter === 'all') return true;
+
+      const deadlineDate = new Date(deadline);
+      const today = new Date();
+      const diffTime = deadlineDate - today;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      switch (filter) {
+        case 'week':
+          return diffDays >= 0 && diffDays <= 7;
+        case 'month':
+          return diffDays >= 0 && diffDays <= 30;
+        case 'overdue':
+          return diffDays < 0;
+        default:
+          return true;
+      }
+    }
+
+    // Function to display filtered requests
+    function displayRequests(requests) {
+      const requestsList = document.getElementById('requests-list');
+      const userRole = localStorage.getItem('userRole');
+      requestsList.innerHTML = '';
+
+      if (requests.length === 0) {
+        requestsList.innerHTML = `
+          <tr>
+            <td colspan="6" class="no-results">No requests found matching your filters</td>
+          </tr>
+        `;
+        return;
+      }
+
+      requests.forEach(request => {
+        const deadlineDate = new Date(request.deadline);
+        const isOverdue = deadlineDate < new Date();
+        
+        const row = document.createElement('tr');
+        let actions;
+        
+        if (userRole === 'ds') {
+          actions = `
+            <button onclick="viewDetails('${request.id}')" class="action-btn">View</button>
+            <button onclick="location.href='process-request.html?id=${request.id}'" class="action-btn process-btn">Process</button>
+          `;
+        } else {
+          actions = `
+            <button onclick="viewDetails('${request.id}')" class="action-btn">View</button>
+          `;
+        }
+
+        row.innerHTML = `
+          <td>${request.id}</td>
+          <td>${request.businessGoal.substring(0, 50)}...</td>
+          <td>${request.expectedOutput}</td>
+          <td class="${isOverdue ? 'overdue' : ''}">${formatDate(request.deadline)}</td>
+          <td><span class="status-badge ${request.status.toLowerCase().replace(' ', '-')}">${request.status}</span></td>
+          <td class="actions-cell">${actions}</td>
+        `;
+        requestsList.appendChild(row);
+      });
+    }
+
+    // Helper function to format dates
+    function formatDate(dateString) {
+      const options = { year: 'numeric', month: 'short', day: 'numeric' };
+      return new Date(dateString).toLocaleDateString(undefined, options);
+    }
+
+    // Event listeners for filters
+    document.getElementById('status-filter').addEventListener('change', loadRequests);
+    document.getElementById('deadline-filter').addEventListener('change', loadRequests);
+    document.getElementById('search').addEventListener('input', loadRequests);
+
+    // Function to view request details
+    function viewDetails(requestId) {
+      const requests = JSON.parse(localStorage.getItem('dataRequests')) || [];
+      const request = requests.find(r => r.id === requestId);
+      const modal = document.getElementById('request-details');
+      const content = document.getElementById('detail-content');
+
+      if (request) {
+        const comments = request.comments ? request.comments.map(comment => `
+          <div class="comment">
+            <p>${comment.text}</p>
+            <small>By ${comment.author} on ${formatDate(comment.date)}</small>
+          </div>
+        `).join('') : '';
+
+        content.innerHTML = `
+          <p><strong>Business Goal:</strong> ${request.businessGoal}</p>
+          <p><strong>Expected Output:</strong> ${request.expectedOutput}</p>
+          <p><strong>Deadline:</strong> ${formatDate(request.deadline)}</p>
+          <p><strong>Status:</strong> <span class="status-badge ${request.status.toLowerCase()}">${request.status}</span></p>
+          <p><strong>Submitted:</strong> ${formatDate(request.submittedDate)}</p>
+          ${request.files.length ? `<p><strong>Files:</strong> ${request.files.join(', ')}</p>` : ''}
+          ${comments ? `
+            <div class="comments-section">
+              <h4>Comments</h4>
+              ${comments}
+            </div>
+          ` : ''}
+        `;
+        modal.style.display = 'block';
+      }
+    }
+
+    // Close modal when clicking the X
+    document.querySelector('.close').onclick = function() {
+      document.getElementById('request-details').style.display = 'none';
+    }
+
+    function processRequest(requestId) {
+      currentRequestId = requestId;
+      const request = JSON.parse(localStorage.getItem('dataRequests')).find(r => r.id === requestId);
+      
+      // Pre-fill current status if exists
+      document.getElementById('process-status').value = request.status;
+      document.getElementById('process-comment').value = '';
+      document.getElementById('process-attachment').value = '';
+      
+      document.getElementById('process-modal').style.display = 'block';
+    }
+
+    function closeProcessModal() {
+      document.getElementById('process-modal').style.display = 'none';
+      currentRequestId = null;
+    }
+
+    function saveProcess() {
+      if (!currentRequestId) return;
+
+      const requests = JSON.parse(localStorage.getItem('dataRequests'));
+      const requestIndex = requests.findIndex(r => r.id === currentRequestId);
+      
+      if (requestIndex !== -1) {
+        const newStatus = document.getElementById('process-status').value;
+        const comment = document.getElementById('process-comment').value;
+        const files = Array.from(document.getElementById('process-attachment').files).map(f => f.name);
+        
+        requests[requestIndex].status = newStatus;
+        
+        if (!requests[requestIndex].comments) {
+          requests[requestIndex].comments = [];
+        }
+        
+        if (comment) {
+          requests[requestIndex].comments.push({
+            text: comment,
+            date: new Date().toISOString(),
+            author: localStorage.getItem('username'),
+            files: files
+          });
+        }
+        
+        localStorage.setItem('dataRequests', JSON.stringify(requests));
+        closeProcessModal();
+        loadRequests();
+      }
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+      const processModal = document.getElementById('process-modal');
+      if (event.target === processModal) {
+        closeProcessModal();
+      }
+    }
+  </script>
+</body>
+</html> 
