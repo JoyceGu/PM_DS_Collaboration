@@ -2,11 +2,14 @@
 
 Welcome to the Collaboration Platform for Product Managers and Data Scientists! This tool is designed to streamline communication and collaboration between product managers and data scientists, making requirement handovers seamless and enhancing project planning and data analysis efficiency.
 
+
+
 ## Platform Overview
 
 This platform consists of two primary modules:
 
 ### 1. Requirement Submission Module for Product Managers
+![Image 1 Description](images/MockAIVerification_Success.png)
 
 This module provides a structured interface for product managers to define project requirements and goals clearly.
 
@@ -79,7 +82,6 @@ We welcome community contributions!
 If you have any questions or suggestions, feel free to reach out:
 
 - **Email**: [joycegu0919@gmail.com](mailto:support@example.com)
-
 
 Thank you for using our platform! We hope it helps you work more efficiently.
 
